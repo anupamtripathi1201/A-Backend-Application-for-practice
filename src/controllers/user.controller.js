@@ -47,8 +47,8 @@ const registerUser = asyncHandler( async (req,res)=>{
 
    //now we need to send these data to user!!!!!
 
-   return res.status(200).json(
-    new APIResponse(200,createdUser,"User Successfully Created!")
+   return res.status(201).json(
+    new APIResponse(201,createdUser,"User Successfully Created!")
    );
 
 
