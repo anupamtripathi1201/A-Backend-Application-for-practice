@@ -21,4 +21,14 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 
-export {app};
+//importing routes
+
+import userrouter from "./routes/user.routes.js";
+
+
+
+app.use('api/v1/user',userrouter)
+//when this hits the control us passed to the user router 
+//uptill this point our url/uri/urn could be https://localhost:3000/api/v1/user.......(now it can go whatever it want to but now the control is given to the user.router.js file)
+
+export { app };

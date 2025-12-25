@@ -7,3 +7,5 @@ class APIResponse {
         this.success = statusCode 
     }
 }
+
+export {APIResponse}
