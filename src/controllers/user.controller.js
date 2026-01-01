@@ -3,6 +3,22 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.models.js";
 import { APIResponse } from "../utils/APIResponse.js";
 
+
+
+const generateAccessTokenandRefreshToken = async (userId)=>{
+    const user = User.findById(userId);
+    const accesstoken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({ValidateBeforeSave : false});
+
+    return { accesstoken,refreshToken};
+
+
+
+
+}
+
 const registerUser = asyncHandler( async (req,res)=>{
    //we need to take input from the frontend
 
@@ -56,5 +72,56 @@ const registerUser = asyncHandler( async (req,res)=>{
 
 });
 
+const loginUser = asyncHandler(async (req,res)=>{
 
-export {registerUser};
+    //taking the user information and finding the user!!
+    const {username,email,password} = req.body
+    if(!username || !email){
+        throw new ApiError(400,"Username or email is required");
+    }
+
+    const user = await User.findOne({
+        $or : [{username},{email}]
+})
+
+    if(!user){
+        throw new ApiError(404,"User not found!");
+
+    }
+
+    //now once the user is found we need to check if the password is correct or not!
+    const isPasswordcorrect = await user.comparePassword(password);
+
+    if(!isPasswordcorrect)
+{
+    throw new ApiError(401,"Password is Incorrect!");
+}
+//we have got the accesstoken and refreshtoken
+const {accesstoken,refreshToken} = await generateAccessTokenandRefreshToken(user._id)
+
+const loggedInuser = await User.findOne(user._id).select("-password -refreshToken");
+
+const options = {
+    httpOnly : true,
+    secure : true
+};
+
+
+
+
+//now send them to cookie
+return res.status(200).cookie("accesstoken",accesstoken,options).cookie("refreshToken",refreshToken,options).json(
+    new APIResponse(
+        400,
+        {
+            user : loggedInuser
+        },
+    "User logged in successfully"
+    )
+)
+
+})
+
+
+export {registerUser,
+loginUser};
